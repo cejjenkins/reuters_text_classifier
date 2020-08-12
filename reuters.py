@@ -1,6 +1,10 @@
 import re
 from lxml import etree, objectify
 from datetime import datetime
+from os import listdir
+from os.path import isfile, join
+import pandas as pd
+import numpy as np
 
 class ReutersSGMLParser():
     """A helper class for parsing Reuters-21578 XGML file formats"""
@@ -113,3 +117,20 @@ class ReutersSGMLParser():
                 lines.append(line)
             xml_data = '\n'.join(lines)
         return self.parse_string(xml_data)
+
+def load_data(files_path):
+    """Load all reuters data and return in a dataframe."""
+    parser = ReutersSGMLParser()
+    data = parser.empty_row()
+    onlyfiles = [f for f in listdir(files_path) if isfile(join(files_path, f))]
+    for doc in onlyfiles:
+        path = join(files_path, doc)
+        print(path)
+        # parse current document
+        rows = parser.parse(path)
+        # append rows into dataset
+        for key in data.keys():
+            data[key] = data[key] + rows[key]
+
+    df = pd.DataFrame(data, columns=data.keys())  
+    return df
